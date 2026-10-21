@@ -739,5 +739,19 @@ const optionsContainer = document.getElementById("display-options-list");
       sessionStorage.setItem("exam_finish_result", JSON.stringify(finishSummary));
       sessionStorage.removeItem(`answers_${this.session.exam.id}_${this.session.student.id}`);
       
-      // Pindah ke halaman selesai setelah fetch beres
       window.location.href = "selesai.html";
+
+    } catch (err) {
+      this.hideLoader();
+      alert(`Kendala pengiriman jawaban: ${err.message}`);
+      if (btnFinish) {
+        btnFinish.disabled = false;
+        btnFinish.innerText = "Coba Kumpulkan Lagi";
+      }
+    }
+  }
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  ExamRunnerModule.init();
+});
