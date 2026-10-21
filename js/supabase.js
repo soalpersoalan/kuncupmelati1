@@ -1,8 +1,8 @@
 // Konfigurasi Klien Supabase
 // Masukkan kredensial dari Checkpoint 3 pada Checkpoint 10
 const SUPABASE_CONFIG = {
-  URL: "https://gxwqfvjbjzsxkfsmkhnh.supabase.co",
-  ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4d3FmdmpianpzeGtmc21raG5oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2OTgxMjcsImV4cCI6MjEwNDI3NDEyN30.G0LmcTU5biVkSGAkVc-FUyZlyWNS7_yDxtf7-Nw-eyg"
+  URL: "https://gclteyozjfyebwzjuxjz.supabase.co",
+  ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjbHRleW96amZ5ZWJ3emp1eGp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MjA2MDUsImV4cCI6MjEwODA5NjYwNX0.KXXZFOTj80CDfqlxWbRNk9APIh2H7P7kcdQeaVCKczc"
 };
 
 let db = null;
