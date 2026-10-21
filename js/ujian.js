@@ -147,12 +147,19 @@ const ExamRunnerModule = {
 
   async loadExamContent() {
     const client = getSupabaseClient();
+    if (!client) {
+      alert("Gagal mengambil data soal: Koneksi Supabase belum siap.");
+      return;
+    }
+
     const examId = this.session.exam.id;
 
     try {
+      // 1. Ambil Stimulus (jika ada)
       const { data: stimuli } = await client.from('stimulus_groups').select('*').eq('exam_id', examId);
       (stimuli || []).forEach(s => this.stimuliMap[s.id] = s);
 
+      // 2. Ambil Soal
       const { data: qData, error: qErr } = await client
         .from('questions')
         .select('id, original_number, stimulus_group_id, question_type, points, pgk_score_err1, pgk_score_err2, pgk_score_err3, image_url, content, correct_keys')
@@ -161,11 +168,28 @@ const ExamRunnerModule = {
 
       if (qErr) throw qErr;
 
+      // VALIDASI PERBAIKAN: Cek jika soal kosong / tidak ditemukan
+      if (!qData || qData.length === 0) {
+        alert("Belum ada soal yang ditambahkan untuk ujian ini.");
+        document.getElementById("display-q-content").innerText = "Tidak ada soal yang tersedia.";
+        return;
+      }
+
+      // 3. Ambil Opsi Jawaban (Mencoba dari 'options' lalu fallback ke 'question_options')
       const questionIds = qData.map(q => q.id);
-      const { data: allOptions } = await client
+      let { data: allOptions } = await client
         .from('options')
         .select('id, question_id, option_label, content, is_correct')
         .in('question_id', questionIds);
+
+      // Jika di tabel 'options' kosong, coba ambil dari 'question_options'
+      if (!allOptions || allOptions.length === 0) {
+        const { data: fallbackOptions } = await client
+          .from('question_options')
+          .select('id, question_id, option_label, content, is_correct')
+          .in('question_id', questionIds);
+        allOptions = fallbackOptions || [];
+      }
 
       const optionsMap = {};
       (allOptions || []).forEach(opt => {
@@ -177,6 +201,7 @@ const ExamRunnerModule = {
         q.options = optionsMap[q.id] || [];
       });
 
+      // 4. Pengacakan Soal
       const shouldRandomizeQuestions = (this.session.exam.randomize_questions === true || this.session.exam.randomize_questions === 'true');
       if (shouldRandomizeQuestions) {
         this.questions = this.shuffleQuestionsByType(qData);
@@ -184,6 +209,7 @@ const ExamRunnerModule = {
         this.questions = qData;
       }
 
+      // 5. Pengacakan Opsi
       const shouldRandomizeOptions = (this.session.exam.randomize_options === true || this.session.exam.randomize_options === 'true');
       const standardLabels = ['A', 'B', 'C', 'D', 'E', 'F'];
 
@@ -209,6 +235,7 @@ const ExamRunnerModule = {
       this.renderCurrentQuestion();
       this.renderGridNumbers();
     } catch (err) {
+      console.error("Detail Error:", err);
       alert(`Gagal mengambil data soal: ${err.message}`);
     }
   },
