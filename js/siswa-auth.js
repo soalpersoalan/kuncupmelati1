@@ -156,14 +156,14 @@ const StudentAuthModule = {
     try { return JSON.parse(raw); } catch { return null; }
   },
 
-  clearSession() {
+ clearSession() {
     localStorage.removeItem("exam_session_data");
     sessionStorage.removeItem("exam_session_data");
     window.location.href = "index.html";
   }
-
-  clearSession() {
-    sessionStorage.removeItem("exam_session_data");
-    window.location.href = "index.html";
-  }
 };
+
+// Menjalankan modul otomatis saat halaman selesai dimuat
+document.addEventListener("DOMContentLoaded", () => {
+  StudentAuthModule.init();
+});
