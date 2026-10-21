@@ -127,7 +127,6 @@ const StudentAuthModule = {
         login_timestamp: new Date().toISOString()
       };
 
-      localStorage.setItem("exam_session_data", JSON.stringify(sessionPayload));
       sessionStorage.setItem("exam_session_data", JSON.stringify(sessionPayload));
       this.showAlert(`Identitas Terverifikasi: [Absen ${studentData.attendance_number}] ${studentData.full_name}. Mengalihkan...`, "success");
 
@@ -151,19 +150,13 @@ const StudentAuthModule = {
   },
 
   getActiveSession() {
-    const raw = localStorage.getItem("exam_session_data") || sessionStorage.getItem("exam_session_data");
+    const raw = sessionStorage.getItem("exam_session_data");
     if (!raw) return null;
     try { return JSON.parse(raw); } catch { return null; }
   },
 
- clearSession() {
-    localStorage.removeItem("exam_session_data");
+  clearSession() {
     sessionStorage.removeItem("exam_session_data");
     window.location.href = "index.html";
   }
 };
-
-// Menjalankan modul otomatis saat halaman selesai dimuat
-document.addEventListener("DOMContentLoaded", () => {
-  StudentAuthModule.init();
-});
