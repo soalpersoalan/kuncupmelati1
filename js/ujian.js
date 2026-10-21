@@ -669,7 +669,7 @@ const optionsContainer = document.getElementById("display-options-list");
         }
       }
 
-      // 3. Rekap ke Google Spreadsheet (Pasti Tembus ke Apps Script)
+      // 3. Rekap ke Google Spreadsheet (Menggunakan await fetch agar pasti terkirim sebelum pindah halaman)
       const targetUrl = this.session?.exam?.spreadsheet_url;
 
       if (targetUrl && targetUrl.startsWith("http")) {
@@ -705,30 +705,21 @@ const optionsContainer = document.getElementById("display-options-list");
             item_analysis: itemAnalysisData
           };
 
-          const payloadString = JSON.stringify(payload);
-
-          // Gunakan Blob text/plain agar browser TIDAK memicu preflight OPTIONS yang ditolak Google
-          const blob = new Blob([payloadString], { type: 'text/plain;charset=utf-8' });
-          
-          // Prioritaskan sendBeacon (standar resmi pengiriman saat submit/pindah halaman)
-          let sent = false;
-          if (navigator.sendBeacon) {
-            sent = navigator.sendBeacon(targetUrl, blob);
-          }
-
-          // Fallback fetch jika browser lama
-          if (!sent) {
-            fetch(targetUrl, {
-              method: 'POST',
-              mode: 'no-cors',
-              body: blob
-            }).catch(e => console.warn("Fetch fallback notice:", e));
-          }
+          // Gunakan fetch dengan mode no-cors dan tunggu (await) hingga proses kirim selesai
+          await fetch(targetUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+              'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify(payload)
+          }).catch(e => console.warn("Peringatan pengiriman spreadsheet:", e));
 
         } catch (prepErr) {
           console.error("Gagal menyusun payload spreadsheet:", prepErr);
         }
       }
+
       // 4. Masuk ke Halaman Selesai
       const finishSummary = {
         student_name: this.session.student.full_name,
@@ -748,21 +739,5 @@ const optionsContainer = document.getElementById("display-options-list");
       sessionStorage.setItem("exam_finish_result", JSON.stringify(finishSummary));
       sessionStorage.removeItem(`answers_${this.session.exam.id}_${this.session.student.id}`);
       
-      setTimeout(() => {
-        window.location.href = "selesai.html";
-      }, 500);
-
-    } catch (err) {
-      this.hideLoader();
-      alert(`Kendala pengiriman jawaban: ${err.message}`);
-      if (btnFinish) {
-        btnFinish.disabled = false;
-        btnFinish.innerText = "Coba Kumpulkan Lagi";
-      }
-    }
-  }
-};
-
-document.addEventListener("DOMContentLoaded", () => {
-  ExamRunnerModule.init();
-});
+      // Pindah ke halaman selesai setelah fetch beres
+      window.location.href = "selesai.html";
